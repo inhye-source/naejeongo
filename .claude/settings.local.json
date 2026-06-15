@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(node --version)",
+      "PowerShell(npm --version)",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; node --version; npm --version; Write-Output \"PATH 등록 완료\")",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; npm install 2>&1 | Select-Object -Last 15)",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; npm run build 2>&1 | Select-Object -Last 35)",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; npm run dev)",
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:3000\" -UseBasicParsing; Write-Output \"상태코드: $\\($r.StatusCode\\)\"; if \\($r.Content -match \"내전 만들기\"\\) { Write-Output \"✓ '내전 만들기' 렌더링 확인\" }; if \\($r.Content -match \"참가자 선택\"\\) { Write-Output \"✓ '참가자 선택' 렌더링 확인\" }; if \\($r.Content -match \"페이커\"\\) { Write-Output \"✓ 샘플 선수 렌더링 확인\" })",
+      "PowerShell(Start-Sleep -Seconds 2; $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/verify\" -UseBasicParsing; $r.Content | ConvertFrom-Json | ConvertTo-Json -Depth 6)",
+      "PowerShell(Start-Sleep -Seconds 3; $r = Invoke-WebRequest -Uri \"http://localhost:3000/api/verify\" -UseBasicParsing; $j = $r.Content | ConvertFrom-Json; foreach \\($s in $j.scenarios\\) { Write-Output \"=== $\\($s.name\\) ===\"; Write-Output \\(\"선수 점수: \" + \\($s.players -join ', '\\)\\); Write-Output \\(\"최적   - 블루:$\\($s.best.blueTotal\\) 레드:$\\($s.best.redTotal\\) 전력차:$\\($s.best.scoreDiff\\) 포지션:$\\($s.best.positionFit\\)\"\\); Write-Output \\(\"최악\\(참고\\) 전력차:$\\($s.worst.scoreDiff\\)\"\\); Write-Output \"\" })",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; npm install @supabase/supabase-js 2>&1 | Select-Object -Last 5)",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; npm run build 2>&1 | Select-Object -Last 12)",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; node test-connection.mjs)",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; npm run build 2>&1 | Select-Object -Last 20)",
+      "PowerShell($env:Path = \"C:\\\\Program Files\\\\nodejs;\" + $env:Path; Remove-Item -Recurse -Force \".next\" -ErrorAction SilentlyContinue; npm run build 2>&1 | Select-Object -Last 22)",
+      "PowerShell($dir = \"C:\\\\Users\\\\s2071\\\\.claude\\\\projects\\\\c--Users-s2071-Desktop----\"; if \\(Test-Path $dir\\) { Write-Output \"세션 폴더: $dir\"; Get-ChildItem $dir -File -ErrorAction SilentlyContinue | Select-Object Name, @{N='KB';E={[math]::Round\\($_.Length/1KB,1\\)}}, LastWriteTime | Format-Table -AutoSize; Write-Output \"--- 하위 폴더 ---\"; Get-ChildItem $dir -Directory -ErrorAction SilentlyContinue | Select-Object Name } else { Write-Output \"세션 폴더 없음\" })"
+    ]
+  }
+}

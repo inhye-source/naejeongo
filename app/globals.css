@@ -1,0 +1,67 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #0a0e14;
+  --surface: #131923;
+  --surface-2: #1c2430;
+  --border: #2a3543;
+  --gold: #c8aa6e;
+  --gold-bright: #f0e6d2;
+  --blue: #0ac8b9;
+  --blue-team: #3b82f6;
+  --red-team: #ef4444;
+  --text: #e6e9ef;
+  --text-dim: #8b97a8;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-accent: var(--blue);
+  --color-blue-team: var(--blue-team);
+  --color-red-team: var(--red-team);
+  --color-text: var(--text);
+  --color-text-dim: var(--text-dim);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+}
+
+@layer utilities {
+  .text-balance-gradient {
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+@layer components {
+  .input {
+    width: 100%;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input:focus {
+    border-color: var(--gold);
+  }
+  .input::placeholder {
+    color: var(--text-dim);
+  }
+}
