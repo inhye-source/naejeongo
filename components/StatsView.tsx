@@ -166,7 +166,7 @@ function PlayersTab({ players }: { players: Player[] }) {
                 {s.games > 0 ? (
                   <span
                     className={
-                      s.winRate >= 0.5 ? "text-emerald-400" : "text-rose-400"
+                      s.winRate >= 0.5 ? "text-emerald-600" : "text-rose-600"
                     }
                   >
                     {Math.round(s.winRate * 100)}%
@@ -218,7 +218,7 @@ function ChampionsTab({ matches }: { matches: MatchDetail[] }) {
               <td className="px-3 py-2 text-right">
                 <span
                   className={
-                    c.winRate >= 0.5 ? "text-emerald-400" : "text-rose-400"
+                    c.winRate >= 0.5 ? "text-emerald-600" : "text-rose-600"
                   }
                 >
                   {Math.round(c.winRate * 100)}%

@@ -130,7 +130,7 @@ export default function LockGroupsEditor({
             <button
               onClick={addGroup}
               disabled={picking.size < 2}
-              className="mt-3 rounded-md bg-gold px-3 py-1.5 text-xs font-semibold text-bg transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
+              className="mt-3 rounded-md bg-gold px-3 py-1.5 text-xs font-semibold text-white transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
             >
               선택한 {picking.size}명 같은 팀으로 묶기
             </button>

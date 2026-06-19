@@ -1,6 +1,39 @@
 import { MatchDetail } from "./db";
 import { Player } from "./types";
 
+// ── 선수별 주 챔프 (내전 픽 기록 기반) ───────────────
+export interface PlayerChampion {
+  champion: string;
+  picks: number;
+  wins: number;
+}
+
+// 선수 id → 많이 픽한 순 챔피언 목록
+export function computePlayerChampionMap(
+  matches: MatchDetail[],
+): Record<string, PlayerChampion[]> {
+  const map: Record<string, Map<string, { picks: number; wins: number }>> = {};
+  for (const m of matches) {
+    if (m.status !== "completed") continue;
+    for (const p of m.players) {
+      const champ = p.champion?.trim();
+      if (!champ) continue;
+      const byPlayer = map[p.playerId] ?? (map[p.playerId] = new Map());
+      const e = byPlayer.get(champ) ?? { picks: 0, wins: 0 };
+      e.picks++;
+      if (p.result === "win") e.wins++;
+      byPlayer.set(champ, e);
+    }
+  }
+  const result: Record<string, PlayerChampion[]> = {};
+  for (const [pid, m] of Object.entries(map)) {
+    result[pid] = [...m.entries()]
+      .map(([champion, v]) => ({ champion, picks: v.picks, wins: v.wins }))
+      .sort((a, b) => b.picks - a.picks);
+  }
+  return result;
+}
+
 // ── 밸런스 정확도 ────────────────────────────────────
 export interface BalanceStats {
   completedCount: number;

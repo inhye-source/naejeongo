@@ -184,7 +184,7 @@ export default function RosterImport({
             <button
               onClick={apply}
               disabled={assignedIds.length === 0}
-              className="rounded-md bg-gold px-4 py-1.5 text-sm font-semibold text-bg transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
+              className="rounded-md bg-gold px-4 py-1.5 text-sm font-semibold text-white transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
             >
               이 선수들로 채우기 ({assignedIds.length}명)
             </button>

@@ -14,10 +14,10 @@ function sortByPosition(team: TeamResult) {
 }
 
 function prefBadge(rank: number): { label: string; cls: string } {
-  if (rank === 0) return { label: "1순위", cls: "bg-emerald-500/15 text-emerald-300" };
-  if (rank === 1) return { label: "2순위", cls: "bg-teal-500/15 text-teal-300" };
-  if (rank >= 2) return { label: `${rank + 1}순위`, cls: "bg-amber-500/15 text-amber-300" };
-  return { label: "비선호", cls: "bg-rose-500/15 text-rose-300" };
+  if (rank === 0) return { label: "1순위", cls: "bg-emerald-500/15 text-emerald-700" };
+  if (rank === 1) return { label: "2순위", cls: "bg-teal-500/15 text-teal-700" };
+  if (rank >= 2) return { label: `${rank + 1}순위`, cls: "bg-amber-500/20 text-amber-700" };
+  return { label: "비선호", cls: "bg-rose-500/15 text-rose-700" };
 }
 
 const SIDE_STYLE = {

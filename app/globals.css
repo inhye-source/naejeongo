@@ -1,17 +1,19 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0a0e14;
-  --surface: #131923;
-  --surface-2: #1c2430;
-  --border: #2a3543;
-  --gold: #c8aa6e;
-  --gold-bright: #f0e6d2;
-  --blue: #0ac8b9;
-  --blue-team: #3b82f6;
-  --red-team: #ef4444;
-  --text: #e6e9ef;
-  --text-dim: #8b97a8;
+  /* OP.GG 톤 — 라이트 테마 */
+  --bg: #f0f1f5; /* 페이지 배경 (밝은 회색) */
+  --surface: #ffffff; /* 흰 카드 */
+  --surface-2: #eef0f4; /* 입력/행 배경 (옅은 회색) */
+  --border: #e3e6ec;
+  --gold: #5383e8; /* 메인 강조색 (OP.GG 블루) — 호환 위해 이름 유지 */
+  --gold-bright: #2f5bd0; /* 강조 텍스트용 진한 블루 (흰 배경에서 가독) */
+  --blue: #5383e8; /* accent */
+  --blue-team: #5383e8;
+  --red-team: #e84057; /* OP.GG 레드 */
+  --text: #16181f; /* 진한 네이비 텍스트 */
+  --text-dim: #525a67; /* 회색 보조 텍스트 (가독성 위해 진하게) */
+  --header-bg: #16171d; /* 네이비 헤더 */
 }
 
 @theme inline {
@@ -26,6 +28,7 @@
   --color-red-team: var(--red-team);
   --color-text: var(--text);
   --color-text-dim: var(--text-dim);
+  --color-header-bg: var(--header-bg);
 }
 
 html,
@@ -39,10 +42,14 @@ body {
 
 @layer utilities {
   .text-balance-gradient {
-    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    background: linear-gradient(135deg, #5383e8, #2f5bd0);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
+  }
+  /* 카드에 OP.GG 같은 옅은 그림자 */
+  .card-shadow {
+    box-shadow: 0 1px 3px rgba(20, 30, 60, 0.06);
   }
 }
 
@@ -51,7 +58,7 @@ body {
     width: 100%;
     border-radius: 0.5rem;
     border: 1px solid var(--border);
-    background: var(--surface-2);
+    background: var(--surface);
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
     color: var(--text);

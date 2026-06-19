@@ -44,6 +44,8 @@ export default function PlayersManager() {
   const [form, setForm] = useState<PlayerInput>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [riotBusy, setRiotBusy] = useState(false);
+  const [riotMsg, setRiotMsg] = useState<string | null>(null);
 
   async function load() {
     setLoading(true);
@@ -164,6 +166,41 @@ export default function PlayersManager() {
     });
   }
 
+  async function syncRiot() {
+    const riotId = (form.riotId ?? "").trim();
+    if (!riotId) {
+      setRiotMsg("먼저 Riot ID를 입력하세요 (예: 페이커#KR1)");
+      return;
+    }
+    setRiotBusy(true);
+    setRiotMsg(null);
+    try {
+      const res = await fetch("/api/riot-lookup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ riotId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "조회 실패");
+      if (data.unranked) {
+        setRiotMsg("⚠️ 언랭 계정입니다. 티어를 직접 설정하세요.");
+        return;
+      }
+      setForm((f) => ({
+        ...f,
+        tier: data.tier as Tier,
+        division: (hasDivision(data.tier) ? data.division : "I") as Division,
+      }));
+      setRiotMsg(
+        `✓ ${data.queue}: ${tierDisplay(data.tier, data.division)} (${data.leaguePoints}LP, ${data.wins}승 ${data.losses}패)`,
+      );
+    } catch (e) {
+      setRiotMsg(`❌ ${msg(e)}`);
+    } finally {
+      setRiotBusy(false);
+    }
+  }
+
   return (
     <div className="space-y-8">
       <section>
@@ -198,13 +235,33 @@ export default function PlayersManager() {
               className="input"
             />
           </Field>
-          <Field label="Riot ID (선택)">
-            <input
-              value={form.riotId ?? ""}
-              onChange={(e) => setForm({ ...form, riotId: e.target.value })}
-              placeholder="게임이름#KR1"
-              className="input"
-            />
+          <Field label="Riot ID (티어 자동조회)">
+            <div className="flex gap-2">
+              <input
+                value={form.riotId ?? ""}
+                onChange={(e) => setForm({ ...form, riotId: e.target.value })}
+                placeholder="게임이름#KR1"
+                className="input"
+              />
+              <button
+                type="button"
+                onClick={syncRiot}
+                disabled={riotBusy}
+                className="shrink-0 rounded-md border border-accent px-3 py-1 text-sm font-semibold text-accent transition-colors hover:enabled:bg-accent/10 disabled:opacity-40"
+                title="Riot ID로 현재 티어를 자동 조회합니다"
+              >
+                {riotBusy ? "조회 중..." : "동기화"}
+              </button>
+            </div>
+            {riotMsg && (
+              <p
+                className={`mt-1 text-xs ${
+                  riotMsg.startsWith("✓") ? "text-emerald-600" : "text-amber-600"
+                }`}
+              >
+                {riotMsg}
+              </p>
+            )}
           </Field>
 
           <Field label="티어">
@@ -265,6 +322,20 @@ export default function PlayersManager() {
             </div>
           </Field>
 
+          <Field label={`수동 보정: ${form.manualAdjustment > 0 ? "+" : ""}${form.manualAdjustment}점`}>
+            <input
+              type="range"
+              min={-500}
+              max={500}
+              step={50}
+              value={form.manualAdjustment}
+              onChange={(e) =>
+                setForm({ ...form, manualAdjustment: Number(e.target.value) })
+              }
+              className="w-full accent-[var(--gold)]"
+            />
+          </Field>
+
           <Field label="모스트 챔피언 (최대 3개, 선택)">
             <div className="flex gap-2">
               {[0, 1, 2].map((i) => (
@@ -283,25 +354,11 @@ export default function PlayersManager() {
             </div>
           </Field>
 
-          <Field label={`수동 보정: ${form.manualAdjustment > 0 ? "+" : ""}${form.manualAdjustment}점`}>
-            <input
-              type="range"
-              min={-500}
-              max={500}
-              step={50}
-              value={form.manualAdjustment}
-              onChange={(e) =>
-                setForm({ ...form, manualAdjustment: Number(e.target.value) })
-              }
-              className="w-full accent-[var(--gold)]"
-            />
-          </Field>
-
           <div className="flex items-end gap-2">
             <button
               onClick={save}
               disabled={busy}
-              className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-bg transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
+              className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-white transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
             >
               {editingId ? "수정 저장" : "등록"}
             </button>

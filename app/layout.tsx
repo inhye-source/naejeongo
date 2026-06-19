@@ -22,8 +22,8 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className="min-h-screen bg-bg text-text antialiased">
-        <header className="border-b border-border bg-surface/60 backdrop-blur">
-          <div className="mx-auto flex max-w-6xl items-center gap-8 px-6 py-4">
+        <header className="bg-[var(--header-bg)] shadow-sm">
+          <div className="mx-auto flex max-w-6xl items-center gap-8 px-6 py-3">
             <Link href="/" className="flex items-center gap-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -31,8 +31,8 @@ export default function RootLayout({
                 alt="내전 고? 로고"
                 className="h-9 w-9 shrink-0 object-contain"
               />
-              <span className="text-xl font-bold text-balance-gradient">
-                내전 고?
+              <span className="text-xl font-bold text-white">
+                내전 <span className="text-accent">고?</span>
               </span>
             </Link>
             <nav className="flex gap-1">
@@ -40,7 +40,7 @@ export default function RootLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className="rounded-md px-3 py-1.5 text-sm font-medium text-text-dim transition-colors hover:bg-surface-2 hover:text-gold-bright focus:outline-none focus-visible:ring-2 focus-visible:ring-gold"
+                  className="rounded-md px-3 py-1.5 text-sm font-medium text-slate-300 transition-colors hover:bg-white/10 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
                 >
                   {item.label}
                 </Link>

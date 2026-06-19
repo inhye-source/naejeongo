@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { fetchPlayers, createMatch } from "@/lib/db";
+import { fetchPlayers, fetchMatches, createMatch, MatchDetail } from "@/lib/db";
 import { balanceTeams } from "@/lib/balance";
 import { effectiveScore, tierDisplay } from "@/lib/tier";
+import { computePlayerChampionMap, PlayerChampion } from "@/lib/stats";
 import { BalanceResult, POSITION_LABEL, Player, Position } from "@/lib/types";
 import BalanceResultView from "@/components/BalanceResultView";
 import ShareButtons from "@/components/ShareButtons";
@@ -12,6 +13,7 @@ import RosterImport from "@/components/RosterImport";
 import TierScoreTable from "@/components/TierScoreTable";
 import LockGroupsEditor from "@/components/LockGroupsEditor";
 import LineLockEditor from "@/components/LineLockEditor";
+import BanRecommendation from "@/components/BanRecommendation";
 
 export default function Home() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -24,6 +26,7 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [lockGroups, setLockGroups] = useState<string[][]>([]);
   const [positionLocks, setPositionLocks] = useState<Record<string, Position>>({});
+  const [matches, setMatches] = useState<MatchDetail[]>([]);
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -31,7 +34,43 @@ export default function Home() {
       .then(setPlayers)
       .catch((e) => setError(e instanceof Error ? e.message : "선수 로드 실패"))
       .finally(() => setLoading(false));
+    // 툴팁용 주 챔프 집계 — 실패해도 본 기능엔 영향 없음
+    fetchMatches()
+      .then(setMatches)
+      .catch(() => {});
   }, []);
+
+  const champMap = useMemo(
+    () => computePlayerChampionMap(matches),
+    [matches],
+  );
+
+  // 선수 정렬
+  const [sortKey, setSortKey] = useState<
+    "default" | "tierDesc" | "tierAsc" | "winRate" | "name"
+  >("default");
+  const sortedPlayers = useMemo(() => {
+    const winRate = (p: Player) => {
+      const g = p.wins + p.losses;
+      return g > 0 ? p.wins / g : -1; // 전적 없으면 뒤로
+    };
+    const arr = [...players];
+    switch (sortKey) {
+      case "tierDesc":
+        arr.sort((a, b) => effectiveScore(b) - effectiveScore(a));
+        break;
+      case "tierAsc":
+        arr.sort((a, b) => effectiveScore(a) - effectiveScore(b));
+        break;
+      case "winRate":
+        arr.sort((a, b) => winRate(b) - winRate(a));
+        break;
+      case "name":
+        arr.sort((a, b) => a.displayName.localeCompare(b.displayName, "ko"));
+        break;
+    }
+    return arr;
+  }, [players, sortKey]);
 
   // 선택이 바뀌면 고정 그룹에서 빠진 선수를 정리
   useEffect(() => {
@@ -41,7 +80,6 @@ export default function Home() {
         .filter((g) => g.length >= 2);
       return JSON.stringify(pruned) === JSON.stringify(prev) ? prev : pruned;
     });
-    // 라인 고정도 빠진 선수 정리
     setPositionLocks((prev) => {
       const next: Record<string, Position> = {};
       for (const [id, pos] of Object.entries(prev)) {
@@ -166,21 +204,39 @@ export default function Home() {
                 <button
                   onClick={generate}
                   disabled={selectedCount !== 10}
-                  className="rounded-md bg-gold px-4 py-1.5 text-sm font-semibold text-bg transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="rounded-md bg-gold px-4 py-1.5 text-sm font-semibold text-white transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   밸런스 생성
                 </button>
               </div>
             </div>
 
+            <div className="mb-3 flex items-center gap-2">
+              <span className="text-xs text-text-dim">정렬</span>
+              <select
+                value={sortKey}
+                onChange={(e) =>
+                  setSortKey(e.target.value as typeof sortKey)
+                }
+                className="rounded-md border border-border bg-surface px-2 py-1 text-xs text-text outline-none focus:border-gold"
+              >
+                <option value="default">등록순</option>
+                <option value="tierDesc">티어 높은순</option>
+                <option value="tierAsc">티어 낮은순</option>
+                <option value="winRate">승률 높은순</option>
+                <option value="name">이름순</option>
+              </select>
+            </div>
+
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-              {players.map((p) => (
+              {sortedPlayers.map((p) => (
                 <PlayerChip
                   key={p.id}
                   player={p}
                   selected={selected.has(p.id)}
                   disabled={!selected.has(p.id) && selectedCount >= 10}
                   onToggle={() => toggle(p.id)}
+                  champions={champMap[p.id] ?? []}
                 />
               ))}
             </div>
@@ -202,6 +258,7 @@ export default function Home() {
           </section>
 
           {current && results && (
+            <>
             <section>
               <div className="mb-3 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">밸런스 결과</h2>
@@ -234,7 +291,7 @@ export default function Home() {
                 <button
                   onClick={saveMatch}
                   disabled={busy || saved !== null}
-                  className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-bg transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
+                  className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
                 >
                   {saved ? "저장됨 ✓" : "이 조합으로 내전 저장"}
                 </button>
@@ -254,6 +311,8 @@ export default function Home() {
                 순서대로 정렬)
               </p>
             </section>
+            <BanRecommendation result={current} champMap={champMap} />
+            </>
           )}
         </>
       )}
@@ -266,33 +325,75 @@ function PlayerChip({
   selected,
   disabled,
   onToggle,
+  champions,
 }: {
   player: Player;
   selected: boolean;
   disabled: boolean;
   onToggle: () => void;
+  champions: PlayerChampion[];
 }) {
+  const games = player.wins + player.losses;
+  const winPct = games > 0 ? Math.round((player.wins / games) * 100) : null;
+  const topChamps = champions.slice(0, 3);
+
   return (
-    <button
-      onClick={onToggle}
-      disabled={disabled}
-      className={`flex flex-col items-start gap-1 rounded-lg border p-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
-        selected
-          ? "border-gold bg-gold/10"
-          : "border-border bg-surface hover:enabled:border-text-dim hover:enabled:bg-surface-2"
-      } ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
-    >
-      <div className="flex w-full items-center justify-between">
-        <span className="truncate font-semibold">{player.displayName}</span>
-        {selected && <span className="text-xs text-gold">✓</span>}
+    <div className="group relative">
+      <button
+        onClick={onToggle}
+        disabled={disabled}
+        className={`flex w-full flex-col items-start gap-1 rounded-lg border p-3 text-left transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-gold ${
+          selected
+            ? "border-gold bg-gold/10"
+            : "border-border bg-surface hover:enabled:border-text-dim hover:enabled:bg-surface-2"
+        } ${disabled ? "cursor-not-allowed opacity-40" : ""}`}
+      >
+        <div className="flex w-full items-center justify-between">
+          <span className="truncate font-semibold">{player.displayName}</span>
+          {selected && <span className="text-xs text-gold">✓</span>}
+        </div>
+        <span className="text-xs text-text-dim">
+          {tierDisplay(player.tier, player.division)} ·{" "}
+          {Math.round(effectiveScore(player))}점
+        </span>
+        <span className="text-[10px] text-text-dim">
+          {player.preferredPositions.map((p) => POSITION_LABEL[p]).join("/")}
+        </span>
+      </button>
+
+      {/* hover 툴팁: 승률 + 주 챔프 */}
+      <div className="pointer-events-none absolute left-1/2 top-full z-30 mt-1 hidden w-52 -translate-x-1/2 rounded-lg border border-border bg-surface-2 p-2.5 text-left shadow-xl group-hover:block">
+        <div className="mb-1 text-sm font-semibold text-gold-bright">
+          {player.displayName}
+        </div>
+        <div className="text-xs text-text-dim">
+          전적{" "}
+          {games > 0 ? (
+            <span className={winPct! >= 50 ? "text-emerald-600" : "text-rose-600"}>
+              {player.wins}승 {player.losses}패 · {winPct}%
+            </span>
+          ) : (
+            <span>기록 없음</span>
+          )}
+        </div>
+        <div className="mt-1.5 text-[11px] font-semibold text-text-dim">
+          주 챔프
+        </div>
+        {topChamps.length > 0 ? (
+          <ul className="mt-0.5 space-y-0.5">
+            {topChamps.map((c) => (
+              <li key={c.champion} className="flex justify-between text-xs">
+                <span className="text-text">{c.champion}</span>
+                <span className="text-text-dim">
+                  {c.picks}판 · {Math.round((c.wins / c.picks) * 100)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-0.5 text-xs text-text-dim">내전 기록 없음</p>
+        )}
       </div>
-      <span className="text-xs text-text-dim">
-        {tierDisplay(player.tier, player.division)} ·{" "}
-        {Math.round(effectiveScore(player))}점
-      </span>
-      <span className="text-[10px] text-text-dim">
-        {player.preferredPositions.map((p) => POSITION_LABEL[p]).join("/")}
-      </span>
-    </button>
+    </div>
   );
 }

@@ -148,7 +148,7 @@ function MatchCard({
               {match.winner === "blue" ? "블루팀 승" : "레드팀 승"}
             </span>
           ) : (
-            <span className="rounded bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-300">
+            <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs font-semibold text-amber-700">
               결과 대기중
             </span>
           )}
@@ -214,7 +214,7 @@ function MatchCard({
                 <button
                   onClick={submit}
                   disabled={busy}
-                  className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-bg transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
+                  className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-white transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
                 >
                   결과 저장 (MMR 갱신)
                 </button>
