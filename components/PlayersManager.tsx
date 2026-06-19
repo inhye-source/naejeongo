@@ -33,6 +33,7 @@ const EMPTY_FORM: PlayerInput = {
   division: "IV",
   preferredPositions: [],
   championPoolSize: 3,
+  mostChampions: ["", "", ""],
   manualAdjustment: 0,
 };
 
@@ -74,6 +75,7 @@ export default function PlayersManager() {
       division: p.division,
       preferredPositions: p.preferredPositions,
       championPoolSize: p.championPoolSize,
+      mostChampions: [p.mostChampions[0] ?? "", p.mostChampions[1] ?? "", p.mostChampions[2] ?? ""],
       manualAdjustment: p.manualAdjustment,
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -94,6 +96,10 @@ export default function PlayersManager() {
       const payload: PlayerInput = {
         ...form,
         division: hasDivision(form.tier) ? form.division : "I",
+        mostChampions: form.mostChampions
+          .map((c) => c.trim())
+          .filter(Boolean)
+          .slice(0, 3),
       };
       if (editingId) {
         await updatePlayer(editingId, payload);
@@ -136,6 +142,7 @@ export default function PlayersManager() {
           division: p.division,
           preferredPositions: p.preferredPositions,
           championPoolSize: p.championPoolSize,
+          mostChampions: p.mostChampions,
           manualAdjustment: p.manualAdjustment,
         });
       }
@@ -258,6 +265,24 @@ export default function PlayersManager() {
             </div>
           </Field>
 
+          <Field label="모스트 챔피언 (최대 3개, 선택)">
+            <div className="flex gap-2">
+              {[0, 1, 2].map((i) => (
+                <input
+                  key={i}
+                  value={form.mostChampions[i] ?? ""}
+                  onChange={(e) => {
+                    const next = [...form.mostChampions];
+                    next[i] = e.target.value;
+                    setForm({ ...form, mostChampions: next });
+                  }}
+                  placeholder={`모스트 ${i + 1}`}
+                  className="input"
+                />
+              ))}
+            </div>
+          </Field>
+
           <Field label={`수동 보정: ${form.manualAdjustment > 0 ? "+" : ""}${form.manualAdjustment}점`}>
             <input
               type="range"
@@ -328,6 +353,9 @@ export default function PlayersManager() {
                   <th className="hidden px-3 py-2 text-left sm:table-cell">
                     주 포지션
                   </th>
+                  <th className="hidden px-3 py-2 text-left md:table-cell">
+                    모스트
+                  </th>
                   <th className="px-3 py-2 text-center">전적</th>
                   <th className="px-3 py-2 text-right">관리</th>
                 </tr>
@@ -346,6 +374,9 @@ export default function PlayersManager() {
                       {p.preferredPositions
                         .map((x) => POSITION_LABEL[x])
                         .join("/")}
+                    </td>
+                    <td className="hidden px-3 py-2 text-text-dim md:table-cell">
+                      {p.mostChampions.length > 0 ? p.mostChampions.join(", ") : "—"}
                     </td>
                     <td className="px-3 py-2 text-center text-text-dim">
                       {p.wins}승 {p.losses}패

@@ -39,6 +39,8 @@ export interface Player {
   preferredPositions: Position[];
   // 챔피언 폭: 자신 있게 플레이 가능한 챔프 수 (1~)
   championPoolSize: number;
+  // 모스트 챔피언 (최대 3개)
+  mostChampions: string[];
   // 자체 MMR: 내전 결과로 갱신되는 Elo. 미설정 시 티어점수로 초기화
   internalMmr?: number;
   // 수동 보정값 (체감 실력 반영, +/-)

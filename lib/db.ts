@@ -12,6 +12,7 @@ interface PlayerRow {
   division: string;
   preferred_positions: string[];
   champion_pool_size: number;
+  most_champions: string[] | null;
   internal_mmr: number | null;
   manual_adjustment: number;
   wins: number;
@@ -27,6 +28,7 @@ function rowToPlayer(r: PlayerRow): Player {
     division: r.division as Division,
     preferredPositions: (r.preferred_positions ?? []) as Position[],
     championPoolSize: r.champion_pool_size,
+    mostChampions: r.most_champions ?? [],
     internalMmr: r.internal_mmr ?? undefined,
     manualAdjustment: r.manual_adjustment,
     wins: r.wins,
@@ -46,6 +48,7 @@ function playerToRow(p: PlayerInput) {
     division: p.division,
     preferred_positions: p.preferredPositions,
     champion_pool_size: p.championPoolSize,
+    most_champions: p.mostChampions ?? [],
     // 자체 MMR 미지정 시 티어점수로 시드
     internal_mmr: p.internalMmr ?? seedMmr(p),
     manual_adjustment: p.manualAdjustment,

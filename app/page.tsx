@@ -5,12 +5,13 @@ import Link from "next/link";
 import { fetchPlayers, createMatch } from "@/lib/db";
 import { balanceTeams } from "@/lib/balance";
 import { effectiveScore, tierDisplay } from "@/lib/tier";
-import { BalanceResult, POSITION_LABEL, Player } from "@/lib/types";
+import { BalanceResult, POSITION_LABEL, Player, Position } from "@/lib/types";
 import BalanceResultView from "@/components/BalanceResultView";
 import ShareButtons from "@/components/ShareButtons";
 import RosterImport from "@/components/RosterImport";
 import TierScoreTable from "@/components/TierScoreTable";
 import LockGroupsEditor from "@/components/LockGroupsEditor";
+import LineLockEditor from "@/components/LineLockEditor";
 
 export default function Home() {
   const [players, setPlayers] = useState<Player[]>([]);
@@ -22,6 +23,7 @@ export default function Home() {
   const [saved, setSaved] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [lockGroups, setLockGroups] = useState<string[][]>([]);
+  const [positionLocks, setPositionLocks] = useState<Record<string, Position>>({});
   const resultRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +40,14 @@ export default function Home() {
         .map((g) => g.filter((id) => selected.has(id)))
         .filter((g) => g.length >= 2);
       return JSON.stringify(pruned) === JSON.stringify(prev) ? prev : pruned;
+    });
+    // 라인 고정도 빠진 선수 정리
+    setPositionLocks((prev) => {
+      const next: Record<string, Position> = {};
+      for (const [id, pos] of Object.entries(prev)) {
+        if (selected.has(id)) next[id] = pos;
+      }
+      return JSON.stringify(next) === JSON.stringify(prev) ? prev : next;
     });
   }, [selected]);
 
@@ -66,7 +76,7 @@ export default function Home() {
       return;
     }
     try {
-      setResults(balanceTeams(chosen, lockGroups));
+      setResults(balanceTeams(chosen, lockGroups, positionLocks));
       setAltIndex(0);
     } catch (e) {
       setError(e instanceof Error ? e.message : "밸런싱 오류");
@@ -79,6 +89,7 @@ export default function Home() {
     setError(null);
     setSaved(null);
     setLockGroups([]);
+    setPositionLocks({});
   }
 
   function applyRoster(ids: string[]) {
@@ -174,7 +185,12 @@ export default function Home() {
               ))}
             </div>
 
-            <div className="mt-4">
+            <div className="mt-4 space-y-3">
+              <LineLockEditor
+                selectedPlayers={players.filter((p) => selected.has(p.id))}
+                positionLocks={positionLocks}
+                onChange={setPositionLocks}
+              />
               <LockGroupsEditor
                 selectedPlayers={players.filter((p) => selected.has(p.id))}
                 groups={lockGroups}

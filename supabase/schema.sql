@@ -13,6 +13,7 @@ create table if not exists players (
   division text not null default 'IV',   -- 디비전 (마스터+는 'I')
   preferred_positions text[] not null default '{}',  -- 주 포지션 (선호순)
   champion_pool_size int not null default 3,         -- 챔프 폭
+  most_champions text[] not null default '{}',       -- 모스트 챔피언 (최대 3)
   internal_mmr numeric,                  -- 자체 MMR (내전 결과로 갱신)
   manual_adjustment numeric not null default 0,      -- 수동 보정
   wins int not null default 0,

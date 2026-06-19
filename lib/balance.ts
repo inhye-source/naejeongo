@@ -43,14 +43,29 @@ function permutations<T>(arr: T[]): T[][] {
 const POSITION_PERMS: Position[][] = permutations(POSITIONS);
 
 // 한 팀(5명)에게 포지션을 최적 배정한다 (불만족 비용 최소화)
-function assignPositions(team: Player[]): {
-  assignments: Assignment[];
+// positionLocks: 특정 선수를 특정 포지션에 고정. 만족 불가 시 Infinity 반환.
+function assignPositions(
+  team: Player[],
+  positionLocks: Record<string, Position>,
+): {
+  assignments: Assignment[] | null;
   positionCostTotal: number;
 } {
   let best: Assignment[] | null = null;
   let bestCost = Infinity;
 
   for (const perm of POSITION_PERMS) {
+    // 라인 고정 검증: 고정된 선수는 반드시 해당 포지션이어야 함
+    let valid = true;
+    for (let i = 0; i < 5; i++) {
+      const lock = positionLocks[team[i].id];
+      if (lock && perm[i] !== lock) {
+        valid = false;
+        break;
+      }
+    }
+    if (!valid) continue;
+
     let cost = 0;
     for (let i = 0; i < 5; i++) {
       cost += positionCost(team[i], perm[i]);
@@ -64,7 +79,7 @@ function assignPositions(team: Player[]): {
       }));
     }
   }
-  return { assignments: best!, positionCostTotal: bestCost };
+  return { assignments: best, positionCostTotal: bestCost };
 }
 
 function teamScore(team: Player[]): number {
@@ -99,9 +114,11 @@ function combinations(arr: number[], k: number): number[][] {
 
 // 메인: 10명을 받아 최적 밸런스 조합들을 비용 오름차순으로 반환
 // lockGroups: 같은 팀에 묶어야 하는 선수 id 그룹들 (선택)
+// positionLocks: 특정 선수를 특정 포지션에 고정 (선택)
 export function balanceTeams(
   players: Player[],
   lockGroups: string[][] = [],
+  positionLocks: Record<string, Position> = {},
 ): BalanceResult[] {
   if (players.length !== 10) {
     throw new Error(`내전은 정확히 10명이어야 합니다 (현재 ${players.length}명)`);
@@ -142,8 +159,11 @@ export function balanceTeams(
     const bluePlayers = blueIdx.map((i) => players[i]);
     const redPlayers = players.filter((_, i) => !blueSet.has(i));
 
-    const blueAssign = assignPositions(bluePlayers);
-    const redAssign = assignPositions(redPlayers);
+    const blueAssign = assignPositions(bluePlayers, positionLocks);
+    const redAssign = assignPositions(redPlayers, positionLocks);
+
+    // 라인 고정을 만족 못 하는 조합은 제외
+    if (!blueAssign.assignments || !redAssign.assignments) continue;
 
     const blueTotal = teamScore(bluePlayers);
     const redTotal = teamScore(redPlayers);
@@ -174,7 +194,7 @@ export function balanceTeams(
   results.sort((a, b) => a.cost - b.cost);
   if (results.length === 0) {
     throw new Error(
-      "고정 조건을 만족하는 팀 구성이 없습니다. 묶은 그룹을 조정해주세요.",
+      "고정 조건을 만족하는 팀 구성이 없습니다. 같은 팀 그룹이나 라인 고정을 조정해주세요. (같은 라인은 최대 2명까지 고정 가능)",
     );
   }
   return results;
@@ -184,6 +204,7 @@ export function balanceTeams(
 export function bestBalance(
   players: Player[],
   lockGroups: string[][] = [],
+  positionLocks: Record<string, Position> = {},
 ): BalanceResult {
-  return balanceTeams(players, lockGroups)[0];
+  return balanceTeams(players, lockGroups, positionLocks)[0];
 }

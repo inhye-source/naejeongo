@@ -2,7 +2,7 @@ import { Player } from "./types";
 import { seedMmr } from "./tier";
 
 // 데모용 샘플 선수 14명 (2단계에서 Supabase 데이터로 대체)
-const raw: Omit<Player, "internalMmr">[] = [
+const raw: Omit<Player, "internalMmr" | "mostChampions">[] = [
   { id: "p1", displayName: "페이커", riotId: "Hide on bush#KR1", tier: "CHALLENGER", division: "I", preferredPositions: ["MID"], championPoolSize: 8, manualAdjustment: 0, wins: 0, losses: 0 },
   { id: "p2", displayName: "구마유시", riotId: "GUMAYUSI#KR1", tier: "GRANDMASTER", division: "I", preferredPositions: ["ADC"], championPoolSize: 6, manualAdjustment: 0, wins: 0, losses: 0 },
   { id: "p3", displayName: "케리아", riotId: "Keria#KR1", tier: "MASTER", division: "I", preferredPositions: ["SUPPORT", "MID"], championPoolSize: 9, manualAdjustment: 0, wins: 0, losses: 0 },
@@ -21,5 +21,6 @@ const raw: Omit<Player, "internalMmr">[] = [
 
 export const SAMPLE_PLAYERS: Player[] = raw.map((p) => ({
   ...p,
+  mostChampions: [],
   internalMmr: seedMmr(p),
 }));
