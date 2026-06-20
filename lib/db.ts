@@ -49,9 +49,10 @@ function playerToRow(p: PlayerInput) {
     preferred_positions: p.preferredPositions,
     champion_pool_size: p.championPoolSize,
     most_champions: p.mostChampions ?? [],
-    // 자체 MMR 미지정 시 티어점수로 시드
-    internal_mmr: p.internalMmr ?? seedMmr(p),
     manual_adjustment: p.manualAdjustment,
+    // ⚠️ internal_mmr·wins·losses는 여기 포함하지 않는다.
+    // 수정 시 누적 MMR/전적이 초기화되지 않도록 보존하기 위함.
+    // (신규 생성 시의 MMR 시드는 createPlayer에서 따로 처리)
   };
 }
 
@@ -68,7 +69,11 @@ export async function fetchPlayers(): Promise<Player[]> {
 export async function createPlayer(input: PlayerInput): Promise<Player> {
   const { data, error } = await getSupabase()
     .from("players")
-    .insert(playerToRow(input))
+    .insert({
+      ...playerToRow(input),
+      // 신규 선수만 티어점수로 MMR 시드 (수정 시엔 건드리지 않음)
+      internal_mmr: input.internalMmr ?? seedMmr(input),
+    })
     .select()
     .single();
   if (error) throw error;
