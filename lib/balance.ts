@@ -116,12 +116,20 @@ function combinations(arr: number[], k: number): number[][] {
 // lockGroups: 같은 팀에 묶어야 하는 선수 id 그룹들 (선택)
 // positionLocks: 특정 선수를 특정 포지션에 고정 (선택)
 export function balanceTeams(
-  players: Player[],
+  roster: Player[],
   lockGroups: string[][] = [],
   positionLocks: Record<string, Position> = {},
 ): BalanceResult[] {
-  if (players.length !== 10) {
-    throw new Error(`내전은 정확히 10명이어야 합니다 (현재 ${players.length}명)`);
+  if (roster.length !== 10) {
+    throw new Error(`내전은 정확히 10명이어야 합니다 (현재 ${roster.length}명)`);
+  }
+
+  // 블루/레드 라벨이 항상 같은 선수에게 고정되지 않도록 입력 순서를 무작위로 섞는다.
+  // (teamSplits가 0번 선수를 항상 블루팀에 두기 때문에, 안 섞으면 첫 선수가 늘 블루)
+  const players = [...roster];
+  for (let i = players.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [players[i], players[j]] = [players[j], players[i]];
   }
 
   // 고정 그룹을 인덱스 집합으로 변환 (2명 이상만 의미 있음)
