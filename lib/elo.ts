@@ -6,7 +6,7 @@ import { effectiveScore, seedMmr } from "./tier";
 // - 약팀이 이기면 많이 오르고, 강팀이 지면 많이 내린다
 // - K: 한 판 최대 변동폭. 내전은 표본이 적으므로 다소 크게 잡는다.
 
-const K = 80;
+const K = 160;
 // Elo 기대승률 스케일: 이 점수차에서 약 76% 승률로 본다.
 const SCALE = 600;
 
