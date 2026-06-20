@@ -217,6 +217,36 @@ export async function deleteMatch(id: string): Promise<void> {
   if (error) throw error;
 }
 
+// 기존 내전의 블루/레드 팀을 바꿔 새 내전(pending)으로 저장
+// (같은 멤버로 사이드만 교체해 연전할 때 사용)
+export async function createSwappedMatch(match: MatchDetail): Promise<string> {
+  const sb = getSupabase();
+  const { data: m, error } = await sb
+    .from("matches")
+    .insert({
+      status: "pending",
+      predicted_score_diff: match.predictedScoreDiff,
+      position_fit: match.positionFit,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+
+  const matchId = (m as { id: string }).id;
+  const rows = match.players.map((p) => ({
+    match_id: matchId,
+    player_id: p.playerId,
+    team: p.team === "blue" ? "red" : "blue", // 사이드 교체
+    position: p.position,
+    score_at_match: p.scoreAtMatch,
+    // champion·result는 새 게임이므로 비워둠 (다시 입력)
+  }));
+  const { error: mpErr } = await sb.from("match_players").insert(rows);
+  if (mpErr) throw mpErr;
+
+  return matchId;
+}
+
 // ── 결과 기록 (승패·챔프 입력 → MMR·전적 갱신) ───────
 // champions: match_player.id → 챔피언명
 export async function recordMatchResult(

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import {
+  createSwappedMatch,
   deleteMatch,
   fetchMatches,
   MatchDetail,
@@ -125,6 +126,19 @@ function MatchCard({
     }
   }
 
+  async function swapSides() {
+    setBusy(true);
+    setErr(null);
+    try {
+      await createSwappedMatch(match);
+      onChanged();
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "사이드 교체 저장 실패");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="rounded-xl border border-border bg-surface">
       {/* 헤더 */}
@@ -210,13 +224,21 @@ function MatchCard({
                 </button>
               </div>
               {err && <p className="text-sm text-red-team">{err}</p>}
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   onClick={submit}
                   disabled={busy}
                   className="rounded-md bg-gold px-4 py-2 text-sm font-semibold text-white transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
                 >
                   결과 저장 (MMR 갱신)
+                </button>
+                <button
+                  onClick={swapSides}
+                  disabled={busy}
+                  className="rounded-md border border-accent px-4 py-2 text-sm font-semibold text-accent transition-colors hover:enabled:bg-accent/10 disabled:opacity-40"
+                  title="같은 멤버로 블루/레드만 바꿔 새 내전을 만듭니다 (연전용)"
+                >
+                  🔄 사이드 바꿔 새 내전
                 </button>
                 <button
                   onClick={remove}
@@ -230,15 +252,25 @@ function MatchCard({
           )}
 
           {completed && (
-            <div className="mt-4">
-              {err && <p className="mb-2 text-sm text-red-team">{err}</p>}
-              <button
-                onClick={remove}
-                disabled={busy}
-                className="text-xs text-text-dim hover:text-red-team hover:underline"
-              >
-                내전 기록 삭제
-              </button>
+            <div className="mt-4 space-y-2">
+              {err && <p className="text-sm text-red-team">{err}</p>}
+              <div className="flex flex-wrap items-center gap-3">
+                <button
+                  onClick={swapSides}
+                  disabled={busy}
+                  className="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white transition-transform hover:enabled:scale-[1.02] active:enabled:scale-[0.98] disabled:opacity-40"
+                  title="같은 멤버로 블루/레드만 바꿔 새 내전을 만듭니다 (연전용)"
+                >
+                  🔄 블루↔레드 바꿔 새 내전 저장
+                </button>
+                <button
+                  onClick={remove}
+                  disabled={busy}
+                  className="text-xs text-text-dim hover:text-red-team hover:underline"
+                >
+                  내전 기록 삭제
+                </button>
+              </div>
             </div>
           )}
         </div>
