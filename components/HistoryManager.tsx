@@ -97,6 +97,12 @@ function MatchCard({
   const red = sortByPos(match.players.filter((p) => p.team === "red"));
   const completed = match.status === "completed";
 
+  // 매치 당시 점수 합으로 예측 우세팀 계산
+  const blueScore = blue.reduce((acc, p) => acc + (p.scoreAtMatch ?? 0), 0);
+  const redScore = red.reduce((acc, p) => acc + (p.scoreAtMatch ?? 0), 0);
+  const favored =
+    blueScore === redScore ? null : blueScore > redScore ? "blue" : "red";
+
   async function submit() {
     if (!winner) {
       setErr("승리 팀을 선택하세요.");
@@ -186,6 +192,8 @@ function MatchCard({
               setChampions={setChampions}
               editable={!completed}
               isWinner={completed && match.winner === "blue"}
+              score={blueScore}
+              isFavored={favored === "blue"}
             />
             <TeamPanel
               title="레드팀"
@@ -195,6 +203,8 @@ function MatchCard({
               setChampions={setChampions}
               editable={!completed}
               isWinner={completed && match.winner === "red"}
+              score={redScore}
+              isFavored={favored === "red"}
             />
           </div>
 
@@ -287,6 +297,8 @@ function TeamPanel({
   setChampions,
   editable,
   isWinner,
+  score,
+  isFavored,
 }: {
   title: string;
   side: "blue" | "red";
@@ -295,6 +307,8 @@ function TeamPanel({
   setChampions: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   editable: boolean;
   isWinner: boolean;
+  score: number;
+  isFavored: boolean;
 }) {
   const color = side === "blue" ? "blue-team" : "red-team";
   return (
@@ -303,7 +317,13 @@ function TeamPanel({
         <h3 className="font-bold" style={{ color: `var(--color-${color})` }}>
           {title}
         </h3>
+        {isFavored && (
+          <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-bold text-amber-700">
+            예측 우세
+          </span>
+        )}
         {isWinner && <span className="text-xs text-gold">승리 👑</span>}
+        <span className="ml-auto text-xs text-text-dim">전력 {Math.round(score)}</span>
       </div>
       <ul className="space-y-1.5">
         {players.map((p) => (
