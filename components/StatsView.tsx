@@ -84,7 +84,8 @@ function BalanceTab({ matches }: { matches: MatchDetail[] }) {
       </p>
     );
   }
-  const blueBalance = 100 - Math.abs(s.blueWinRate - 0.5) * 200; // 50%일 때 100점
+  // 팀 구성이 박빙이었는지 = 전력 우세팀 승률이 50%에 가까운 정도 (블루 승률 아님!)
+  const balanceScore = 100 - Math.abs(s.favoredWinRate - 0.5) * 200;
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -95,31 +96,36 @@ function BalanceTab({ matches }: { matches: MatchDetail[] }) {
           hint="작을수록 균형 있게 매칭"
         />
         <Stat
-          label="블루 승률"
-          value={`${Math.round(s.blueWinRate * 100)}%`}
-          hint="50%에 가까울수록 공평"
+          label="전력 우세팀 승률"
+          value={`${Math.round(s.favoredWinRate * 100)}%`}
+          hint="50%에 가까울수록 박빙 (팀 공평)"
         />
         <Stat
-          label="밸런스 균형도"
-          value={`${Math.round(blueBalance)}점`}
-          hint="블루/레드 승률 쏠림 없는 정도"
+          label="밸런스 점수"
+          value={`${Math.round(balanceScore)}점`}
+          hint="100에 가까울수록 박빙"
         />
       </div>
       <div className="rounded-lg border border-border bg-surface p-4 text-sm text-text-dim">
         <p className="mb-2 font-semibold text-text">해석 가이드</p>
         <ul className="list-inside list-disc space-y-1">
           <li>
+            <span className="text-text">팀 구성이 공평한지</span>는{" "}
+            <span className="text-text">전력 우세팀 승률</span>로 봅니다. 점수상
+            강한 팀이 실제로도 이긴 비율인데,{" "}
+            <span className="text-text">50%에 가까울수록</span> 강팀·약팀 구분이
+            무의미할 만큼 박빙이었다는 뜻 = 밸런스가 좋음.
+          </li>
+          <li>
             <span className="text-text">평균 예측 전력차</span>가 작을수록
-            알고리즘이 균형 있게 팀을 나눴다는 뜻입니다.
+            알고리즘이 애초에 팀을 고르게 나눴다는 뜻입니다.
           </li>
           <li>
-            <span className="text-text">블루 승률</span>이 50% 근처면 어느 팀에도
-            유리함이 쏠리지 않은 좋은 밸런스입니다.
-          </li>
-          <li>
-            <span className="text-text">전력 우세팀 승률</span>:{" "}
-            {Math.round(s.favoredWinRate * 100)}% — 점수상 강한 팀이 실제로 이긴
-            비율. 50%에 가까울수록 박빙(=잘 맞춘 밸런스)입니다.
+            참고 — <span className="text-text">블루 사이드 승률</span>:{" "}
+            {Math.round(s.blueWinRate * 100)}%. 이건 팀 공평성이 아니라{" "}
+            <span className="text-text">게임 내 진영(블루/레드) 유불리</span>를
+            봅니다. 블루/레드는 무작위로 배정되므로, 이 값이 50%에서 많이 벗어나면
+            진영 자체의 어드밴티지 신호예요 (팀 구성 문제 아님).
           </li>
         </ul>
       </div>
